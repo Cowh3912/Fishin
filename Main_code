@@ -1,0 +1,207 @@
+require 'ruby2d'
+set width: 640
+set height: 640
+tick = 0
+@background = Sprite.new('images/Background2.png', x: 0, y: 0, clip_width: 640, height: 640)
+@boat = Sprite.new('images/boat1.png', x: 200, y: 400, width: 200, height: 200, clip_width: 32, z: 1, time: 400, animations: { flip: 0..1})
+@water = Sprite.new('images/Water.png', x: 0, y: 140, clip_width: 640, clip_height: 640, z: 0, time: rand(500..1000))
+@velocityx = 3
+@lower_bound = -20
+@greater_bound = 400
+@st = Time.now
+@duration = nil
+@boat2 = Sprite.new('images/Boat2 .png', animations: {n1: 0..1}, x: 200, y: 400, width: 200, height: 200, z: -1)
+@paused = false
+@fish = Sprite.new('images/fishie.png', x: 300, y: 500, animations: {blue: 0..1, red: 2..3, silver: 4..5, random1: 6..7}, clip_width: 32, width: 120, height: 120, z: -1)
+@value1 = 0
+@title = Text.new('beginning area', x: 220, y: 100, color: 'black', size: 30 )
+song = Music.new('Music/song.mp3')
+song.play
+##############################################################################################################################################
+class Fish
+  attr_accessor :rarity, :color, :value, :name
+  def initialize(rarity, color, value, name)
+    @rarity = ['common', 'rare', 'super-rare', 'legendary'].sample
+    @color = ['red', 'blue', 'silver', '???'].sample
+    @value = value
+    case
+    when @rarity == 'common'
+      @value = '5 gold'
+    when @rarity == 'rare'
+      @value = '10 gold'
+    when @rarity == 'super-rare'
+      @value = '20 gold'
+    when @rarity == 'legendary'
+      @value = '50 gold'
+    end
+    @name = ['russian gold', 'blue tea', 'cod'].sample  
+  end
+end
+#########################################################################3#######################################################################
+def pause
+  @velocityx = 0
+  @water.clip_x += 0
+  @background.clip_x += 0
+  @paused = true
+end
+def un_pause
+  @velocityx = 3
+  @water.clip_x += 0
+  @paused = false
+end
+def toggle_pause
+  if @paused
+    un_pause
+  else
+    pause
+  end
+end
+def pause2
+  @velocityx = 0
+  @water.clip_x += 0
+  @paused2 = true
+end
+def un_pause2
+  @velocityx = 3
+  @water.clip_x += 0
+  @paused2 = false
+end
+def toggle_pause2
+  if @paused2
+    un_pause2
+  else
+    pause2
+  end
+end
+######################################################################33#######################################################################
+
+def fishing
+  case
+  when @boat.x <= @lower_bound
+    x = 0
+    puts x
+  when @boat.x >= @greater_bound
+    x = 0
+    puts x
+  when @boat.x <= @greater_bound
+  @fish1 = Fish.new('common', 'red', 10, 'bob')
+   puts 'color is ' + @fish1.color, 'rarity is ' + @fish1.rarity, 'value is ' + @fish1.value, 'name is '+  @fish1.name
+   @fish.z = 1
+   if @fish1.color == 'red'
+     @fish.play animation: :red, loop: true
+   elsif @fish1.color == 'blue'
+     @fish.play animation: :blue, loop: true
+   elsif @fish1.color == 'silver'
+     @fish.play animation: :silver, loop: true
+   else
+     @fish.play animation: :random1, loop: true
+   end
+   @value1 = @fish1.value ##### Sets the global variable to the fishies value
+  end
+end
+#######################################################################3#######################################################################
+
+##############################################################################################################################################
+on :key do |event|
+  close if event.key == 'escape'
+  if @boat.z >= 1
+    case event.key
+    when 'left',"a"
+      @boat.x -= @velocityx
+      @boat.play animations: :flip, flip: :horizontal
+      @boat2.play animations: :n1, flip: :horizontal
+      @boat.z = 1
+      @boat2.z = -1
+    when 'right', "d"
+      @boat.x += @velocityx
+      @boat.play
+      @boat2.play
+      @boat.z = 1
+      @boat2.z = -1
+    when 'z'
+      @boat.z = -1
+      @boat2.z = 1
+      toggle_pause
+    end
+  end
+##############################################################################################################################################
+  on :key_down do |event|
+    if @boat2.z >= 1
+      case event.key
+      when 'space'
+        @boat2.z = -1
+        @boat.z = 1
+        toggle_pause
+        @fish.z = -1
+      end
+    end
+  end
+end
+##############################################################################################################################################
+on :mouse_down do |event|
+  if @boat2.z >= 1
+    case event.button
+  when :left
+    fishing
+    @fish.x = @boat.x
+   
+    end
+  end
+end
+##############################################################################################################################################
+on :mouse_up do |event|
+  value = 0
+  if @boat.z >= 1
+    case event.button
+  when :right
+  @t = Square.new(size: 500, x: 80, y: 40, color: 'yellow', z: 2)
+  @t1 = Square.new(size: 400, x: 130, y: 80, color: 'white', z: 3)
+  @t2 = Text.new(@value1, x: 130, y: 90, z: 4, color: 'black') ####Value is called at initial of 0 by activation
+  @t3 = Text.new('inventory', x: 130, y: 50, z: 4, color: 'black')
+  @boat.z = 1
+  pause2
+  when :left
+    @t.z = -1
+    @t1.z = -1
+    @t2.z = -1
+    @t3.z = -1
+    un_pause2
+    end
+  end
+end
+##############################################################################################################################################
+update do
+  if tick % 1 == 0
+    case
+    when @boat.x >= @greater_bound
+      @boat.x = @greater_bound
+      @background.clip_x += @velocityx
+      @water.clip_x += 2
+      @boat.play
+      @fish.z = -1
+    when @boat.x <= @lower_bound
+      @boat.x = @lower_bound
+      @background.clip_x -= @velocityx
+      @water.clip_x -= 2
+      @boat.play animations: :flip, flip: :horizontal
+      @fish.z = -1
+    end
+    if @paused == true
+      @water.clip_x += 1
+    else
+      @water.clip_x += 2
+    end
+    if @paused2 == true
+      @water.clip_x -= 2
+    else
+      @water.clip_x += 0
+    end
+    @boat2.x = @boat.x
+  end
+  @title.opacity -= 0.005
+  tick += 1
+end
+##############################################################################################################################################
+show
+
+##### MUSIC: www.bensound.com
